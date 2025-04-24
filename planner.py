@@ -1,5 +1,7 @@
 from datetime import datetime
-
+"""
+This part of the code is the algorithms part using linked lists
+"""
 class FinancialNode:
     def __init__(self, income):
         now = datetime.now()
