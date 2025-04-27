@@ -2,6 +2,8 @@
 
 import customtkinter
 from datetime import datetime
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # --- Financial Linked List Classes ---
 
@@ -18,7 +20,7 @@ class FinancialNode:
         self.spending = None
         self.invest = None
         self.next = None
-
+        
 class FinancialLinkedList:
     def __init__(self):
         self.head = None
@@ -104,6 +106,12 @@ class FinancialPlannerApp(customtkinter.CTk):
         self.textbox = customtkinter.CTkTextbox(self, width=600, height=400)
         self.textbox.grid(row=0, column=1, rowspan=6, padx=20, pady=10, sticky="nsew")
 
+        #Pie Chart
+        self.figure = Figure(figsize=(4,2.5), dpi=100)
+        self.ax = self.figure.add_subplot(111)
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
+        self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, sticky="nsew")
+
     def update_risk_info(self, risk_level):
         """Update the label with risk level allocation information."""
         if risk_level == "Saver":
@@ -142,7 +150,7 @@ class FinancialPlannerApp(customtkinter.CTk):
             spend_amount = income * spend_percentage
             save_amount = income * save_percentage
             invest_amount = income * invest_percentage
-    
+
             # S&P 500 annual return rate
             annual_return_rate = 0.07
             monthly_return_rate = annual_return_rate / 12  # Approx 0.005833 per month
@@ -165,7 +173,7 @@ class FinancialPlannerApp(customtkinter.CTk):
                     total_investment_value += invest_amount * ((1 + monthly_return_rate) ** months_remaining)
                 else:
                     total_investment_value += invest_amount  # No more time to grow
-    
+            roi = (total_investment_value - total_invested) / total_invested * 100
             # Add the data to the planner
             self.planner.add(income, class_year, over_21, risk_level, sim_length)
     
@@ -184,10 +192,25 @@ class FinancialPlannerApp(customtkinter.CTk):
                 f"  Total Invested (Before Growth): ${total_invested:.2f}\n\n"
                 f"Investment Growth (S&P 500 Return Applied):\n"
                 f"  Total Investment Value: ${total_investment_value:.2f}\n"
+                f"  ROI: {roi:.2f}%"          
             )
     
             self.textbox.insert("0.0", result_text)
-    
+            # Pie Chart
+            sizes  = [spend_amount, save_amount, invest_amount]
+            labels = ['Spend', 'Save', 'Invest']
+
+            self.ax.clear()
+            self.ax.pie(sizes,
+                        labels=labels,
+                        autopct='%1.1f%%',
+                        startangle=90)
+            self.ax.set_title("Allocation per Paycheck")
+            self.ax.axis('equal')           # make it a circle
+            self.canvas.draw()
+
+# then your scenario comparison or clearing inputs…
+
             # Clear inputs
             self.income_entry.delete(0, "end")
             self.sim_length_entry.delete(0, "end")
